@@ -3,9 +3,10 @@ import  express from 'express';
 import { AppDataSource } from "./data-source"
 import UserRoutes from './routes/UserRoutes'
 
-const app = express() ;
-
 const PORT = process.env.PORT || 3000
+const app = express() ;
+app.use(express.json()) ;
+
 
 
 

@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx nodemon ./src/index.ts"
+    "start:dev": "npx nodemon ./src/index.ts"
+    ,"build" : "tsc -p ." ,
+    "start:prod"  :"node ./dist/index.js"
   },
   "keywords": [],
   "author": "",
