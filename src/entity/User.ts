@@ -1,17 +1,30 @@
 
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BaseEntity } from "typeorm"
+import bcrypt from 'bcrypt'
+import { Post } from "./Post"
 
 @Entity()
-export class User {
+export class User  extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number
 
     @Column()
-    firstName: string
+    username: string 
 
     @Column()
-    lastName: string
-
+    email: string
     @Column()
-    age: number
+    password : string 
+
+    @OneToMany(()=>Post , (post)=>post.author ,{ cascade: true }) 
+    posts:Post[] 
+
+
+    public async correctPassword( candidatePassword:string ,userPassword:string) : Promise<boolean>{
+
+      console.log('You are here ' , candidatePassword ,userPassword)
+        return await bcrypt.compare(candidatePassword, userPassword);
+      };
+
+    
 }

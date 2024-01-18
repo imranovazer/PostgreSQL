@@ -1,9 +1,8 @@
 import { Response, Request } from "express";
 
-import { AppDataSource } from "../data-source";
 import { User } from "../entity/User";
+import bcrypt from 'bcrypt'
 
-const userRepository = AppDataSource.getRepository(User);
 
 
 
@@ -13,12 +12,17 @@ const userRepository = AppDataSource.getRepository(User);
 export const UserController = {
   createUser: async (req: Request, res: Response) => {
     try {
-        const { firstName, lastName, age } = req.body;
+        const { username, email, password } = req.body;
       const user = new User();
-      user.firstName = firstName;
-      user.lastName = lastName;
-      user.age = age;
-      await userRepository.save(user);
+      user.username = username;
+      user.email = email;
+
+      const hashedPassword = await bcrypt.hash(password, 12)
+      user.password = hashedPassword ; 
+
+
+      
+      await user.save() ;
       return res.status(200).json({
         status: "sucess",
         message: "New user crated sucessfuly",
@@ -30,10 +34,24 @@ export const UserController = {
       });
     }
   },
-  getUsers: (req: Request, res: Response) => {
+  getUsers: async(req: Request, res: Response) => {
+
+    try {
+
+      const users =  await User.find({relations:{
+        posts:true
+      }}) ; 
     return res.status(200).json({
       status: "sucess",
-      message: "The list of users",
+      data  : users 
     });
+      
+    } catch (error) {
+      res.status(500).json({
+        status : 'fail' ,
+        error
+      })
+    }
+    
   },
 };
