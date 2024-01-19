@@ -1,23 +1,53 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, BaseEntity } from "typeorm"
-import { User } from "./User"
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  BaseEntity,
+  ManyToMany,
+  CreateDateColumn,
+  OneToMany,
+} from "typeorm";
+import { User } from "./User";
+import { Comment } from "./Comment";
 
 @Entity()
 export class Post extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({
-        length: 100,
-    })
-    name: string
+  @Column({
+    length: 100,
+  })
+  name: string;
 
-    @Column("text")
-    description: string
+  @Column("text")
+  description: string;
 
-    @Column()
-    photo: string
 
-    
-    @ManyToOne(()=>User , (author)=>author.posts)
-    author : User
-}   
+
+  @Column()
+  photo: string;
+
+  @ManyToMany(
+    () => User,
+    (user) => user.favoritePosts
+
+    // ,{cascade:true}
+  )
+  likes: User[];
+
+  @CreateDateColumn({
+    type: "timestamp",
+    default: () => "CURRENT_TIMESTAMP(6)",
+  })
+  createdAt: Date;
+
+
+  @OneToMany(() => Comment, (comment) => comment.post ,{cascade:true}) // note: we will create author property in the Photo class below
+  comments: Comment[]
+
+
+  @ManyToOne(() => User, (author) => author.posts)
+  author: User;
+}
