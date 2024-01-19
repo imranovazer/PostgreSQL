@@ -10,8 +10,19 @@ const CommentController = {
         try {
 
             const { commentId } = req.params;
+            //@ts-ignore
             const MyUserData = req.user;
-            const deletedComment = await Comment.findByIdAndDelete(commentId);
+
+                const deletedComment =  await Comment.findOne({
+                    where: {
+                        id: parseInt(commentId),
+                    },
+                    relations: {
+                        user: true,
+                    },
+                })
+
+                
 
             if (!deletedComment) {
                 return res.status(400).json(
@@ -21,20 +32,18 @@ const CommentController = {
                     }
                 )
             }
+            if(deletedComment.user.id!==MyUserData.id)
+            {
+                return res.status(400).json(
+                    {
+                        status: 'fail',
+                        message: 'You cannot delete the comment of other user'
+                    }
+                )
+            }
 
-            // if (!deletedComment.user.equals(MyUserData._id)) {
-            //     return res.status(400).json(
-            //         {
-            //             status: 'fail',
-            //             message: 'You cannot delete the comment of other user'
-            //         }
-            //     )
-            // }
-            const deletedCommentPost = await Post.findById(deletedComment.post);
-
-            deletedCommentPost.comments = deletedCommentPost.comments.filter(item => !item.equals(deletedComment._id))
-            await deletedCommentPost.save();
-
+           
+            deletedComment.remove() ;
             return res.status(200).json(
                 {
                     staus: 'sucess',
@@ -56,25 +65,33 @@ const CommentController = {
 
     },
 
-    createComment: async (req, res) => {
+    createComment: async (req:Request, res:Response) => {
 
         try {
+            //@ts-ignore
             const MyUserData = req.user;
             const { postId } = req.params;
 
-            const newComment = await Comment.create({
-                text: req.body.text,
-                user: MyUserData._id,
-                post: postId
 
-            });
+            const postToBeCommented = await Post.findOneBy({id:parseInt(postId)})
 
-            const postToBeCommented = await Post.findById(postId);
+            if(postToBeCommented)
+            {
+                var newComment =new Comment() ; 
+                newComment.text =req.body.text 
+                newComment.user= MyUserData ,
+                newComment.post = postToBeCommented
+                await newComment.save() ;
 
-            postToBeCommented.comments.push(newComment._id);
+            }
+            else {
+                return res.status(400).json({
+                    status: 'fail',
+                    message: "Post with that id not found"
+                });
 
-            await postToBeCommented.save();
-
+            }
+           
             return res.status(201).json({
                 status: 'Sucess',
                 data: newComment

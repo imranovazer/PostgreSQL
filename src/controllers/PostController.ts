@@ -67,48 +67,48 @@ export const PostController = {
     }
         
   }
+   , 
 
+  likePost: async (req :Request, res :Response) => {
+    try {
+      console.log("Like post");
+      //@ts-ignore
+      const MyUserData = req.user;
+      const postToLikeId = req.params.id;
+      const  postToLike = await Post.findOneBy({id:parseInt(postToLikeId)})
 
-//   likePost: async (req, res) => {
-//     try {
-//       console.log("Like post");
+      const isAlreadyLiked = MyUserData.favoritePosts.includes(postToLike._id);
 
-//       const MyUserData = req.user;
-//       const postToLikeId = req.params.id;
-//       const postToLike = await Post.findById(postToLikeId);
-
-//       const isAlreadyLiked = MyUserData.favoritePosts.includes(postToLike._id);
-
-//       if (isAlreadyLiked) {
+      if (isAlreadyLiked) {
 
 
         
-//         return res.status(400).json({
-//           status: "fail",
-//           message: "Post already liked by you",
-//         });
-//       }
-//       postToLike.likes.push(MyUserData._id);
+        return res.status(400).json({
+          status: "fail",
+          message: "Post already liked by you",
+        });
+      }
+      postToLike.likes.push(MyUserData._id);
 
-//       await postToLike.save();
+      await postToLike.save();
 
-//       MyUserData.favoritePosts.push(postToLikeId);
-//       await MyUserData.save();
-//       await postToLike.populate("author likes comments");
+      MyUserData.favoritePosts.push(postToLikeId);
+      await MyUserData.save();
+      await postToLike.populate("author likes comments");
 
-//       return res.status(200).json({
-//         status: "sucess",
-//         message: "Post liked sucessfully",
-//         post: postToLike,
-//       });
-//     } catch (err) {
-//       console.log("WHAT AN ERROR  ", err);
-//       res.status(500).json({
-//         status: "fail",
-//         error: err,
-//       });
-//     }
-//   },
+      return res.status(200).json({
+        status: "sucess",
+        message: "Post liked sucessfully",
+        post: postToLike,
+      });
+    } catch (err) {
+      console.log("WHAT AN ERROR  ", err);
+      res.status(500).json({
+        status: "fail",
+        error: err,
+      });
+    }
+  },
 //   unlikePost: async (req, res) => {
 //     try {
 //       console.log("Dislike post");
