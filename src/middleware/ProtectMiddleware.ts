@@ -25,7 +25,17 @@ export const ProtectMiddleware = async (req :Request, res :Response, next : Next
         // 2) Verification token
         const decoded = await jwt.verify(token, process.env.SECRET_KEY as string);
         // 3) Check if user still exists
-        const currentUser =  await  User.findOneBy((decoded as JwtPayload).id)
+        const currentUser =  await  User.findOne({
+            where : {
+                id : (decoded as JwtPayload).id
+            },
+            relations :{
+                favoritePosts : true ,
+                posts: true ,
+                followers : true , 
+                following:true
+            }
+        })
         
         if (!currentUser) {
             return res.status(401).json({

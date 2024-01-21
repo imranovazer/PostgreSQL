@@ -168,8 +168,17 @@ export const AuthController = {
 
             const decoded = await jwt.verify(token, process.env.SECRET_KEY as string);
 
-            const currentUser = await User.findOneBy({
-              id: (decoded as JwtPayload).id
+            const currentUser = await User.findOne({
+                where : {
+                    id: (decoded as JwtPayload).id
+                } ,
+                relations : {
+                    favoritePosts: true ,
+                    followers : true ,
+                    following : true,
+                    posts : true
+                }
+             
             })
 
             if (!currentUser) {
@@ -183,6 +192,7 @@ export const AuthController = {
                 data: currentUser
             })
         } catch (error) {
+            console.log(error)
             return res.status(401).json({
                 status: "fail",
                 error,

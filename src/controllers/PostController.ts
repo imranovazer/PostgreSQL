@@ -1,10 +1,35 @@
 import { Response , Request } from "express";
 import { Post } from "../entity/Post";
+import { User } from "../entity/User";
 
 
 
 
 export const PostController = {
+  getAllPosts :async (req:Request , res:Response)=>
+  {
+    try {
+      const allPosts = await Post.find({
+        relations : {
+          likes : true ,
+          comments : true  ,
+          author :true
+        }
+      }) ; 
+
+      res.status(200).json({
+        status: 'sucess' ,
+        data : allPosts
+      })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({
+        status: 'fail' ,
+        error
+      })
+    }
+  } ,
+
  
   createPost: async (req:Request, res:Response) => {
     try {
@@ -26,11 +51,11 @@ export const PostController = {
       newPost.author = MyUserInfo ; 
 
 
-      await newPost.save () ; 
+      await newPost.save() ; 
 
      
      
-      await MyUserInfo.save();
+      
 
       // console.log("User id who created the post", userId);
 
@@ -66,21 +91,31 @@ export const PostController = {
         })
     }
         
-  }
-   , 
-
+  }, 
   likePost: async (req :Request, res :Response) => {
     try {
       console.log("Like post");
       //@ts-ignore
-      const MyUserData = req.user;
+      const MyUserData:User = req.user;
+      // console.log(MyUserData)
       const postToLikeId = req.params.id;
-      const  postToLike = await Post.findOneBy({id:parseInt(postToLikeId)})
+      const  postToLike = await Post.findOneBy({id:parseInt(postToLikeId)});
 
-      const isAlreadyLiked = MyUserData.favoritePosts.includes(postToLike._id);
+      if(!postToLike)
+      {
+         return res.status(400).json(
+          {
+            status : 'fail'  ,
+            message : "Post with that ID not found"
 
+          }
+        )
+      }
+
+
+      const isAlreadyLiked:boolean = MyUserData.favoritePosts.some(item=>item.id===postToLike?.id)
+      
       if (isAlreadyLiked) {
-
 
         
         return res.status(400).json({
@@ -88,13 +123,10 @@ export const PostController = {
           message: "Post already liked by you",
         });
       }
-      postToLike.likes.push(MyUserData._id);
+      
 
-      await postToLike.save();
-
-      MyUserData.favoritePosts.push(postToLikeId);
+      MyUserData.favoritePosts.push(postToLike)
       await MyUserData.save();
-      await postToLike.populate("author likes comments");
 
       return res.status(200).json({
         status: "sucess",
@@ -102,43 +134,38 @@ export const PostController = {
         post: postToLike,
       });
     } catch (err) {
-      console.log("WHAT AN ERROR  ", err);
+      // console.log("WHAT AN ERROR  ", err);
       res.status(500).json({
         status: "fail",
         error: err,
       });
     }
+  } ,
+  unlikePost: async (req:Request, res:Response) => {
+    try {
+      console.log("Dislike post");
+
+      //@ts-ignore
+      const MyUserData:User = req.user;
+      const postToLikeId = req.params.id;
+
+      MyUserData.favoritePosts = MyUserData.favoritePosts.filter(
+        (item) => item.id!==parseInt(postToLikeId)
+      );
+
+      await MyUserData.save();
+
+      return res.status(200).json({
+        status: "sucess",
+        message: "Post unkliked sucessfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: "fail",
+        error: error,
+      });
+    }
   },
-//   unlikePost: async (req, res) => {
-//     try {
-//       console.log("Dislike post");
-
-//       const MyUserData = req.user;
-//       const postToLikeId = req.params.id;
-//       const postToLike = await Post.findById(postToLikeId);
-
-//       postToLike.likes = postToLike.likes.filter(
-//         (item) => !item.equals(MyUserData._id)
-//       );
-
-//       await postToLike.save();
-
-//       MyUserData.favoritePosts = MyUserData.favoritePosts.filter(
-//         (item) => !item.equals(postToLikeId)
-//       );
-//       await MyUserData.save();
-
-//       return res.status(200).json({
-//         status: "sucess",
-//         message: "Post unkliked sucessfully",
-//       });
-//     } catch (error) {
-//       res.status(500).json({
-//         status: "fail",
-//         error: error,
-//       });
-//     }
-//   },
 //   getFollowingUserPosts: async (req, res) => {
 //     try {
 //       const MyUserData = req.user;

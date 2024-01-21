@@ -7,6 +7,7 @@ import {
   ManyToMany,
   CreateDateColumn,
   OneToMany,
+  JoinColumn,
 } from "typeorm";
 import { User } from "./User";
 import { Comment } from "./Comment";
@@ -30,10 +31,7 @@ export class Post extends BaseEntity {
   photo: string;
 
   @ManyToMany(
-    () => User,
-    (user) => user.favoritePosts
-
-    // ,{cascade:true}
+    () => User , user=>user.favoritePosts
   )
   likes: User[];
 
@@ -49,5 +47,6 @@ export class Post extends BaseEntity {
 
 
   @ManyToOne(() => User, (author) => author.posts)
+  @JoinColumn()
   author: User;
 }

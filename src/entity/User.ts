@@ -16,15 +16,15 @@ export class User  extends BaseEntity {
     @Column()
     password : string 
 
-    @ManyToMany(() => User, (user) => user.followers 
+    @ManyToMany(() => User, (user) => user.following 
     
     // ,{cascade:true}
     )
-    @JoinTable()
+   
     followers: User[]
 
 
-    @ManyToMany(() => User, (user) => user.following 
+    @ManyToMany(() => User, (user) => user.followers 
     
     // ,{cascade:true}
     )
@@ -32,9 +32,7 @@ export class User  extends BaseEntity {
     following: User[]
 
 
-    @ManyToMany(() => User, (user) => user.following 
-    
-    // ,{cascade:true}
+    @ManyToMany(() => Post , post=>post.likes,{cascade:true}
     )
     @JoinTable()
     favoritePosts: Post[]
